@@ -128,13 +128,12 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Data
-data
-data/
-
 # ipynb
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
 # Logs
 *.log
+
+# VSCode
+.vsocode
