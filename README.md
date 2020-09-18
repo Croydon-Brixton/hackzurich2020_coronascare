@@ -1,5 +1,5 @@
 # ch_coronascare
-VM-IP: 104.45.92.104
+VM-IP: `104.45.92.104`  
 VM-users: `amray`, `aneesh`, `vale`, `simon`
 
 ## Miscellaneous useful links
