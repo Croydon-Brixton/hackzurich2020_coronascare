@@ -9,6 +9,7 @@ import pandas as pd
 from dash.dependencies import Input, Output, State, ClientsideFunction
 import dash_core_components as dcc
 import dash_html_components as html
+from constants import *
 
 # Multi-dropdown options
 from controls import COUNTIES, WELL_STATUSES, WELL_TYPES, WELL_COLORS
@@ -51,7 +52,7 @@ points = pickle.load(open(DATA_PATH.joinpath("points.pkl"), "rb"))
 
 
 # Create global chart template
-mapbox_access_token = "pk.eyJ1IjoidGlnZXJmbHlzdHVkaW8iLCJhIjoiY2tmOW94a3kzMG83ZTJybWFqc28ydDI1NyJ9.uoRh84Gv3y9J397hMz-BDw"
+mapbox_access_token = MAPBOX_TOKEN
 
 layout = dict(
     autosize=True,
