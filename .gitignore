@@ -131,6 +131,8 @@ dmypy.json
 # ipynb
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
+private_notebooks
+private_notebooks
 
 # Logs
 *.log
