@@ -1,6 +1,3 @@
 [submodule "src/processing/local-geocode"]
 	path = src/processing/local-geocode
 	url = git@github.com:mar-muel/local-geocode.git
-
-[submodule "src/processing/local-geocode"]
-	path = src/visualization/dash_try
