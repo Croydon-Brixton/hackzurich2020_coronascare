@@ -4,6 +4,7 @@ import os
 # PATHS
 DATA_PATH = "/mnt/data"
 TWITTER_PATH = os.path.join(DATA_PATH, "srf_data", "Twitter")
+CASES_PATH = os.path.join(DATA_PATH, "Bing-COVID-19-Data", "data")
 SMD_PATH = os.path.join(DATA_PATH, "srf_data", "SMD")
 LOCATION_PATH = os.path.join(DATA_PATH, "location_data")
 

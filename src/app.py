@@ -11,6 +11,7 @@ from dash.dependencies import Input, Output, State, ClientsideFunction
 import dash_core_components as dcc
 import dash_html_components as html
 from constants import *
+import joblib
 
 # Multi-dropdown options
 from controls import COUNTIES, WELL_STATUSES, WELL_TYPES, WELL_COLORS
@@ -51,6 +52,21 @@ dataset = trim.to_dict(orient="index")
 
 points = pickle.load(open(DATA_PATH.joinpath("points.pkl"), "rb"))
 
+# Load Corona Data
+df_cases = joblib.load(os.path.join(CASES_PATH, "COVID_Data_cleaned.joblib"))
+df_cases["pickup_datetime"] = pd.to_datetime(df_cases.Updated)
+df_cases["month"] = df_cases.pickup_datetime.apply(lambda x: x.month)
+df_cases["week"] = df_cases.pickup_datetime.apply(lambda x: x.week)
+df_cases["day"] = df_cases.pickup_datetime.apply(lambda x: x.day)
+df_cases["hour"] = df_cases.pickup_datetime.apply(lambda x: x.hour)
+df_copy = df_cases.copy()
+df_copy["count"] = 1
+mydf = (
+    df_copy[["Latitude", "Longitude", "count"]]
+    .groupby(["Latitude", "Longitude"])
+    .sum()
+    .reset_index()
+)
 
 # Create global chart template
 mapbox_access_token = MAPBOX_TOKEN
@@ -63,12 +79,12 @@ layout = dict(
     plot_bgcolor="#F9F9F9",
     paper_bgcolor="#F9F9F9",
     legend=dict(font=dict(size=10), orientation="h"),
-    title="Satellite Overview",
+    title="Corona Scare Map",
     mapbox=dict(
         accesstoken=mapbox_access_token,
         style="light",
-        center=dict(lon=-78.05, lat=42.54),
-        zoom=7,
+        center=dict(lon=8.01427, lat=47.00016),
+        zoom=6,
     ),
 )
 
@@ -83,7 +99,7 @@ app.layout = html.Div(
                 html.Div(
                     [
                         html.Img(
-                            src=app.get_asset_url("dash-logo.png"),
+                            src=app.get_asset_url("srf_logo.png"),
                             id="plotly-image",
                             style={
                                 "height": "60px",
@@ -99,11 +115,11 @@ app.layout = html.Div(
                         html.Div(
                             [
                                 html.H3(
-                                    "New York Oil and Gas",
+                                    "Swiss Coronavirus Dashboard",
                                     style={"margin-bottom": "0px"},
                                 ),
                                 html.H5(
-                                    "Production Overview", style={"margin-top": "0px"}
+                                    "Activity News Level", style={"margin-top": "0px"}
                                 ),
                             ]
                         )
@@ -114,8 +130,7 @@ app.layout = html.Div(
                 html.Div(
                     [
                         html.A(
-                            html.Button("Learn More", id="learn-more-button"),
-                            href="https://plot.ly/dash/pricing/",
+                            html.Button("About us", id="learn-more-button"), href="#",
                         )
                     ],
                     className="one-third column",
@@ -131,7 +146,7 @@ app.layout = html.Div(
                 html.Div(
                     [
                         html.P(
-                            "Filter by construction date (or select range in histogram):",
+                            "Filter by time range (or select range in histogram):",
                             className="control_label",
                         ),
                         dcc.RangeSlider(
@@ -141,7 +156,7 @@ app.layout = html.Div(
                             value=[1990, 2010],
                             className="dcc_control",
                         ),
-                        html.P("Filter by well status:", className="control_label"),
+                        html.P("Filter by data type:", className="control_label"),
                         dcc.RadioItems(
                             id="well_status_selector",
                             options=[
@@ -194,22 +209,31 @@ app.layout = html.Div(
                         html.Div(
                             [
                                 html.Div(
-                                    [html.H6(id="well_text"), html.P("No. of Wells")],
+                                    [
+                                        html.H6(id="well_text"),
+                                        html.P("Total cases (CH)"),
+                                    ],
                                     id="wells",
                                     className="mini_container",
                                 ),
                                 html.Div(
-                                    [html.H6(id="gasText"), html.P("Gas")],
+                                    [
+                                        html.H6(id="gasText"),
+                                        html.P("Active cases (CH)"),
+                                    ],
                                     id="gas",
                                     className="mini_container",
                                 ),
                                 html.Div(
-                                    [html.H6(id="oilText"), html.P("Oil")],
+                                    [html.H6(id="oilText"), html.P("Scare level")],
                                     id="oil",
                                     className="mini_container",
                                 ),
                                 html.Div(
-                                    [html.H6(id="waterText"), html.P("Water")],
+                                    [
+                                        html.H6(id="waterText"),
+                                        html.P("Fatalities (CH)"),
+                                    ],
                                     id="water",
                                     className="mini_container",
                                 ),
@@ -272,6 +296,16 @@ def human_format(num):
 
 
 def filter_dataframe(df, well_statuses, well_types, year_slider):
+    dff = df[
+        df["Well_Status"].isin(well_statuses)
+        & df["Well_Type"].isin(well_types)
+        & (df["Date_Well_Completed"] > dt.datetime(year_slider[0], 1, 1))
+        & (df["Date_Well_Completed"] < dt.datetime(year_slider[1], 1, 1))
+    ]
+    return dff
+
+
+def filter_case_df(df, well_statuses, well_types, year_slider):
     dff = df[
         df["Well_Status"].isin(well_statuses)
         & df["Well_Type"].isin(well_types)
@@ -442,24 +476,45 @@ def make_main_figure(
 
     dff = filter_dataframe(df, well_statuses, well_types, year_slider)
 
-    traces = []
-    for well_type, dfff in dff.groupby("Well_Type"):
-        trace = dict(
-            type="scattermapbox",
-            lon=dfff["Surface_Longitude"],
-            lat=dfff["Surface_latitude"],
-            text=dfff["Well_Name"],
-            customdata=dfff["API_WellNo"],
-            name=WELL_TYPES[well_type],
-            marker=dict(size=4, opacity=0.6),
+    traces = [
+        dict(
+            type="densitymapbox",
+            lon=mydf["Longitude"],
+            lat=mydf["Latitude"],
+            z=mydf["count"],
+            text="Corona Case",
+            radius=30,
+            marker=dict(size=4, opacity=0.4),
         )
-        traces.append(trace)
+    ]
+
+    #   for _, case in df_cases.iterrows():
+    #       trace = dict(
+    #           type="scattermapbox",
+    #           lon=df_cases["Longitude"],
+    #           lat=df_cases["Latitude"],
+    #           text="Corona Case",
+    #           marker=dict(size=4, opacity=0.6),
+    #       )
+    #       traces.append(trace)
+
+    # for well_type, dfff in dff.groupby("Well_Type"):
+    #    trace = dict(
+    #        type="scattermapbox",
+    #        lon=dfff["Surface_Longitude"],
+    #        lat=dfff["Surface_latitude"],
+    #        text=dfff["Well_Name"],
+    #        customdata=dfff["API_WellNo"],
+    #        name=WELL_TYPES[well_type],
+    #        marker=dict(size=4, opacity=0.6),
+    #    )
+    #    traces.append(trace)
 
     # relayoutData is None by default, and {'autosize': True} without relayout action
     if main_graph_layout is not None and selector is not None and "locked" in selector:
         if "mapbox.center" in main_graph_layout.keys():
-            lon = float(main_graph_layout["mapbox.center"]["lon"])
-            lat = float(main_graph_layout["mapbox.center"]["lat"])
+            lon = float(main_graph_layout["mapbox.center"]["lon"])  # TODO: Swiss center
+            lat = float(main_graph_layout["mapbox.center"]["lat"])  # TODO: Swiss center
             zoom = float(main_graph_layout["mapbox.zoom"])
             layout["mapbox"]["center"]["lon"] = lon
             layout["mapbox"]["center"]["lat"] = lat
