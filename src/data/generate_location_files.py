@@ -1,4 +1,6 @@
+import os
 import joblib
+from src.constants import LOCATION_PATH
 
 if __name__ == "__main__":
     print("Generating Geolocations")
@@ -13,6 +15,6 @@ if __name__ == "__main__":
     global_places = {entry[0]: tuple(entry[1:]) for entry in geonames}
 
     # Save
-    joblib.dump(swiss_places, "/mnt/data/location_data/swiss_places.pkl")
-    joblib.dump(global_places, "/mnt/data/location_data/global_places.pkl")
+    joblib.dump(swiss_places, os.path.join(LOCATION_PATH, "swiss_places.pkl"))
+    joblib.dump(global_places, os.path.join(LOCATION_PATH, "global_places.pkl"))
     print("Completed!")
