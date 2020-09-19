@@ -1,3 +1,5 @@
+Our fun repo for the HackZurich2020 SRF Corona Scare Challenge.
+
 ## Miscellaneous useful links
 1. Local GeoCoding [https://github.com/mar-muel/local-geocode]
 2. Flashtext Keyword search [https://github.com/vi3k6i5/flashtext]
