@@ -1,3 +1,3 @@
-# Shared constants go in here
+"""File to save project-wide constants"""
 
 DATA_PATH = "/mnt/data"
