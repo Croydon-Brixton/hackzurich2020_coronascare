@@ -16,3 +16,6 @@ Note, the SRF data is already downloaded and accessible on the VM in `/mnt/data/
 2. Bing Swiss Corona cases cantonal [https://www.bing.com/covid/local/switzerland]
 3. NPSS Swiss Corona cases global [https://data.humdata.org/dataset/novel-coronavirus-2019-ncov-cases]
 4. List of GeoNames [http://www.geonames.org/]
+
+## Maps
+1. Mapbox [www.mapbox.com]
